@@ -13,7 +13,7 @@
     "url": "git+ssh://git@github.com:gabriel-rivero/yadi.git"
   },
   "engines": {
-    "node": ">4.2.x"
+    "node": ">4.0.x"
   },
   "bugs": {
     "url": "https://github.com/gabriel-rivero/yadi/issues"
@@ -21,14 +21,5 @@
   "dependencies": {
     "lodash": "^4.2.0"
   },
-  "homepage": "https://github.com/gabriel-rivero/yadi#readme",
-  "devDependencies": {
-    "jasmine": "^2.4.1"
-  },
-  "bin": {
-    "jasmine": "./node_modules/.bin/jasmine"
-  },
-  "scripts": {
-    "test": "jasmine"
-  }
+  "homepage": "https://github.com/gabriel-rivero/yadi#readme"
 }
