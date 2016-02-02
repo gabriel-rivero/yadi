@@ -1,0 +1,8 @@
+{
+  "name": "yadi",
+  "version": "1.0.0",
+  "description": "Yet Another Dependency Injector",
+  "main": "index.js",
+  "author": "Gabriel Rivero gabriel.rivero.sa@gmail.com",
+  "license": "MIT"
+}
