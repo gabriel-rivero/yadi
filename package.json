@@ -3,6 +3,32 @@
   "version": "1.0.0",
   "description": "Yet Another Dependency Injector",
   "main": "index.js",
-  "author": "Gabriel Rivero gabriel.rivero.sa@gmail.com",
-  "license": "MIT"
+  "author": {
+    "name": "Gabriel Rivero",
+    "email": "gabriel.rivero.sa@gmail.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com:gabriel-rivero/yadi.git"
+  },
+  "engines": {
+    "node": ">4.2.x"
+  },
+  "bugs": {
+    "url": "https://github.com/gabriel-rivero/yadi/issues"
+  },
+  "dependencies": {
+    "lodash": "^4.2.0"
+  },
+  "homepage": "https://github.com/gabriel-rivero/yadi#readme",
+  "devDependencies": {
+    "jasmine": "^2.4.1"
+  },
+  "bin": {
+    "jasmine": "./node_modules/.bin/jasmine"
+  },
+  "scripts": {
+    "test": "jasmine"
+  }
 }
