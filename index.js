@@ -46,10 +46,19 @@ class InjectorContainer {
    * @param something
    */
   inject(something) {
+    let type = this.getType(something);
+    return this[type + 'Injector'] ? this[type + 'Injector'](something)
+                                   : throwError(`Injector type '${type}' not defined`);
+  }
+
+  /**
+   * gets the type of something
+   * @param something
+   */
+  getType(something) {
     let type = typeof something;
     type === 'object' && _.isArray(something) && (type = 'array');
-    this[type + 'Injector'] ? this[type + 'Injector'](something)
-                            : throwError(`Injector type '${type}' not defined`);
+    return type;
   }
 
   /**
@@ -57,7 +66,7 @@ class InjectorContainer {
    * @param somethings
    */
   arrayInjector(somethings) {
-    _.forEach(somethings, something => this.inject(something));
+    return Promise.all(somethings.map(something => this.inject(something)));
   }
 
   /**
@@ -65,35 +74,64 @@ class InjectorContainer {
    * @param something
    */
   objectInjector(something) {
-    this.functionInjector(something);
+    return this.functionInjector(something);
   }
 
   /**
    * injects the dependencies into the files of a directory or a single file
    */
   stringInjector(something) {
-    fs.exists(something, (exists) =>
-      !exists ? throwError(`Path '${something}' don't exists`) : (
-        fs.stat(something, (err, stats) =>
-          err ? throwError(`Error reading '${something}'`) : (
-            stats.isDirectory() ? this.directoryInjector(something)
-                                : this.fileInjector(something)
-          )
-        )
-      )
-    )
+    return new Promise((resolve, reject) => {
+      this.doesPathExist(something)
+      .then(() => this.getPathInformation(something))
+      .then(stats => stats.isDirectory() ? resolve(this.directoryInjector(something))
+                                         : resolve(this.fileInjector(something)))
+      .catch(() => throwError(`Path '${something}' don't exists or had an access error`));
+    });
+  }
+
+  /**
+   * checks if the path exists
+   * @param  {string}
+   * @return {Promise} resolves when exists, rejects if not
+   */
+  doesPathExist(path) {
+    return new Promise((resolve, reject) =>
+      fs.exists(path, exists =>
+        exists ? resolve() : reject()));
+  }
+
+  /**
+   * gets information regarding the path and what it represents
+   * @param  {string} path
+   * @return {Promise} rejects on error
+   */
+  getPathInformation(path) {
+    return new Promise((resolve, reject) =>
+      fs.stat(path, (err, stats) =>
+        !err ? resolve(stats) : reject()));
   }
 
   /**
    * injects into all the files of a directory
    */
   directoryInjector(directoryPath) {
-    fs.readdir(directoryPath, (err, files) =>
-      err ? throwError(`Error listing files on '${directoryPath}'`)
-          : files.forEach(file =>
-              this.fileInjector(path.join(directoryPath, file))
-            )
-    )
+    return new Promise((resolve, reject) => {
+      this.getFilesInDirectory(directoryPath)
+      .then(files => resolve(Promise.all(files.map(file => this.fileInjector(path.join(directoryPath, file))))))
+      .catch(() => throwError(`Error listing files on '${directoryPath}'`));
+    });
+  }
+
+  /**
+   * gets the files in a directory
+   * @param  {string} path
+   * @return {array}
+   */
+  getFilesInDirectory(path) {
+    return new Promise((resolve, reject) =>
+      fs.readdir(path, (err, files) =>
+        !err ? resolve(files) : reject()));
   }
 
   /**
@@ -101,7 +139,7 @@ class InjectorContainer {
    */
   fileInjector(filePath) {
     let temp = require(filePath);
-    this.inject(temp);
+    return this.inject(temp);
   }
 
   /**
@@ -110,10 +148,13 @@ class InjectorContainer {
    */
   functionInjector(something) {
     let dependencies = this.getDependencies(something);
-    _.forEach(dependencies, (value, index) => {
-      (this[injectables][index]) ? something[value] = this[injectables][index]
-                                 : console.warn(`Injectable '${index}' is not defined`);
-    });
+    return Promise.all(Object.keys(dependencies).map(name => {
+      (this[injectables][name]) ? something[dependencies[name]] = this[injectables][name]
+                                : console.warn(`Injectable '${name}' is not defined`);
+      // always resolve despite the possible warning
+      // TODO: test if we should reject on warning
+      Promise.resolve();
+    }));
   }
 
   /**
@@ -122,9 +163,8 @@ class InjectorContainer {
    * @returns {object}
    */
   getDependencies(something) {
-    let dependencies = something['dependencies'];
-    let type         = typeof dependencies;
-    type === 'object' && _.isArray(dependencies) && (type = 'array');
+    let dependencies = something.dependencies;
+    let type         = this.getType(dependencies);
     // treatments to use to handle the dependencies
     let treatments = {
       'object': dependencies => dependencies,
@@ -133,11 +173,7 @@ class InjectorContainer {
         object[dependency] = dependency;
         return object;
       },
-      'array': dependencies => {
-        let object = {};
-        _.forEach(dependencies, value => object[value] = value);
-        return object;
-      },
+      'array': dependencies => dependencies.reduce((obj, name) => (obj[name] = name) && obj, {}),
       'undefined': () => {
         console.warn(`No dependencies found, ignoring`);
         return {};
