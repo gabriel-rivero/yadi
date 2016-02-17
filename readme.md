@@ -25,18 +25,22 @@ class Potato {
     return ['custom name 1', 'custom name 2']
   }
 }
-di.inject(Potato)
+di.inject(Potato);
 ```
 injects the class potato with two dependencies, the dependencies are at the definition of the class, meaning they are accessible using static methods
 ```
 var obj = {
   'dependencies': {
-    'potato': 'custom name'
+    'custom name': 'potato'
   }
 }
 di.inject(obj)
 ```
 injects the object with the object in custom name, it's available in the object as potato
+```
+di.inject([obj1, obj2]);
+```
+injects several objects at the same time
 ```
 di.inject('/some/directory/path');
 

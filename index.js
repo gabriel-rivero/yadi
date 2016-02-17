@@ -1,6 +1,5 @@
 'use strict';
 
-const _    = require('lodash');
 const fs   = require('fs');
 const path = require('path');
 
@@ -20,6 +19,7 @@ class InjectorContainer {
   constructor(lock) {
     (lock != singletonLock) && throwError("Cannot construct singleton");
     this[injectables] = {};
+    this.outputMessages = true;
   }
 
   /**
@@ -57,7 +57,7 @@ class InjectorContainer {
    */
   getType(something) {
     let type = typeof something;
-    type === 'object' && _.isArray(something) && (type = 'array');
+    type === 'object' && Array.isArray(something) && (type = 'array');
     return type;
   }
 
@@ -73,7 +73,7 @@ class InjectorContainer {
    * injects to an object, actually the code for function works just fine
    * @param something
    */
-  objectInjector(something) {
+  objectInjector(something) {        
     return this.functionInjector(something);
   }
 
@@ -150,7 +150,7 @@ class InjectorContainer {
     let dependencies = this.getDependencies(something);
     return Promise.all(Object.keys(dependencies).map(name => {
       (this[injectables][name]) ? something[dependencies[name]] = this[injectables][name]
-                                : console.warn(`Injectable '${name}' is not defined`);
+                                : this.outputMessages && console.warn(`Injectable '${name}' is not defined`);
       // always resolve despite the possible warning
       // TODO: test if we should reject on warning
       Promise.resolve();
@@ -175,7 +175,7 @@ class InjectorContainer {
       },
       'array': dependencies => dependencies.reduce((obj, name) => (obj[name] = name) && obj, {}),
       'undefined': () => {
-        console.warn(`No dependencies found, ignoring`);
+        this.outputMessages && console.warn(`No dependencies found, ignoring`);
         return {};
       }
     };

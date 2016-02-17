@@ -1,6 +1,6 @@
 {
   "name": "yadi",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Yet Another Dependency Injector",
   "main": "index.js",
   "author": {
@@ -13,13 +13,16 @@
     "url": "git+ssh://git@github.com:gabriel-rivero/yadi.git"
   },
   "engines": {
-    "node": ">4.0.x"
+    "node": ">=4.0.x"
   },
   "bugs": {
     "url": "https://github.com/gabriel-rivero/yadi/issues"
   },
-  "dependencies": {
-    "lodash": "^4.2.0"
+  "homepage": "https://github.com/gabriel-rivero/yadi#readme",
+  "devDependencies": {
+    "vows": "^0.8.1"
   },
-  "homepage": "https://github.com/gabriel-rivero/yadi#readme"
+  "scripts": {
+    "test": "node test/*.js"
+  }
 }
