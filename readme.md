@@ -61,7 +61,7 @@ injects all the files in the path with whatever they need, also a single file ca
 
 [npm-image]: https://img.shields.io/npm/v/yadi.svg
 [npm-url]: https://npmjs.org/package/yadi
-[travis-image]: https://img.shields.io/travis/gabriel-rivero/yadi/develop.svg
+[travis-image]: https://img.shields.io/travis/gabriel-rivero/yadi/master.svg
 [travis-url]: https://travis-ci.org/gabriel-rivero/yadi
 [downloads-image]: https://img.shields.io/npm/dm/mysql2.svg
 [downloads-url]: https://npmjs.org/package/mysql2
