@@ -1,4 +1,8 @@
 # YADI (Yet Another Dependency injector)
+[![NPM Version][npm-image]][npm-url]
+[![Build][travis-image]][travis-url]
+
+[![NPM](https://nodei.co/npm/yadi.png?downloads=true)](https://nodei.co/npm/yadi/)
 
 ## Usage
 require the file
@@ -54,3 +58,10 @@ injects all the files in the path with whatever they need, also a single file ca
 ## TODO
 * Improve this file
 * Add tests
+
+[npm-image]: https://img.shields.io/npm/v/yadi.svg
+[npm-url]: https://npmjs.org/package/yadi
+[travis-image]: https://img.shields.io/travis/gabriel-rivero/yadi/develop.svg
+[travis-url]: https://travis-ci.org/gabriel-rivero/yadi
+[downloads-image]: https://img.shields.io/npm/dm/mysql2.svg
+[downloads-url]: https://npmjs.org/package/mysql2
