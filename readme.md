@@ -3,7 +3,7 @@
 [![Build][travis-image]][travis-url]
 [![Coverage Status][coveralls-image]][coveralls-url]
 
-[![NPM][npm-image]][npm-url]
+[![NPM][npm2-image]][npm2-url]
 
 ## Usage
 require the file
@@ -58,6 +58,7 @@ console.log(potato['custom name']());
 injects all the files in the path with whatever they need, also a single file can be passed
 ## TODO
 * Improve this file
+* Add failure tests
 
 [npm-image]: https://img.shields.io/npm/v/yadi.svg
 [npm-url]: https://npmjs.org/package/yadi
@@ -67,5 +68,5 @@ injects all the files in the path with whatever they need, also a single file ca
 [downloads-url]: https://npmjs.org/package/mysql2
 [coveralls-image]: https://coveralls.io/repos/github/gabriel-rivero/yadi/badge.svg
 [coveralls-url]: https://coveralls.io/github/gabriel-rivero/yadi?branch=develop
-[npm-image]: https://nodei.co/npm/yadi.png?downloads=true
-[npm-url]: https://nodei.co/npm/yadi/
+[npm2-image]: https://nodei.co/npm/yadi.png?downloads=true
+[npm2-url]: https://nodei.co/npm/yadi/
