@@ -20,9 +20,12 @@
   },
   "homepage": "https://github.com/gabriel-rivero/yadi#readme",
   "devDependencies": {
+    "coveralls": "^2.11.8",
+    "istanbul": "^0.4.2",
     "vows": "^0.8.1"
   },
   "scripts": {
-    "test": "node test/*.js"
+    "test": "node test/*.js",
+    "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls"
   }
 }
