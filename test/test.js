@@ -98,6 +98,30 @@ vows.describe('Injector tests: ').addBatch({
       assert.equal(Tester.sRun(), 'running');
       let tester = new Tester();
       assert.equal(tester.run(), 'running');
+    },
+
+    'require on add': injector => {
+      injector.requireAndAdd(path.join(__dirname, 'subjects', '1.js'));
+
+      let subject = {
+        dependencies: '1'
+      };
+
+      injector.inject(subject);
+
+      assert.equal(subject['1'](), 'success');
+    },
+
+    'require and modify on add': injector => {
+      injector.requireAndAdd(path.join(__dirname, 'subjects', '2.js'), 'named', module => module('chimichangas'));
+
+      let subject = {
+        dependencies: 'named'
+      };
+
+      injector.inject(subject);
+
+      assert.equal(subject.named(), 'the string passed was chimichangas');
     }
   },
   'file injection': {
@@ -117,7 +141,6 @@ vows.describe('Injector tests: ').addBatch({
       }
     }
   },
-  /*
   'directory injection': {
     topic: () => {
       let injector = require(injectorPath);
@@ -126,11 +149,9 @@ vows.describe('Injector tests: ').addBatch({
     },
     'inject into a directory': {
       topic: function (injector) {
-        injector.inject(path.join(__dirname, 'patients'))
-                .then(() => {
-                  console.log('fdafdafa');
-                  this.callback()
-                });
+        injector
+        .inject(path.join(__dirname, 'patients'))
+        .then(() => this.callback());
       },
       'file should have received the injection': () => {
         let file0 = require(path.join(__dirname, 'patients', '0.js'));
@@ -142,5 +163,4 @@ vows.describe('Injector tests: ').addBatch({
       }
     }
   }
-  */
 }).run(); // Run it

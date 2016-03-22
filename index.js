@@ -32,13 +32,31 @@ class InjectorContainer {
   }
 
   /**
+   * requires a file, gives the name if specified, the treater is a function to update the requirement
+   * @param  {string} filename
+   * @param  {string} name
+   * @param  {function} treater
+   * @return {Promise}
+   */
+  requireAndAdd(filename, name, treater) {
+    treater === undefined && typeof name === 'function' && (treater = name) && (name = undefined);
+    !treater && (treater = obj => obj);
+    name    = name    || filename.split('/').pop().split('.').shift();
+    let obj = require(filename);
+    obj     = treater(obj);
+    return this.add(obj, name);
+  }
+
+  /**
    * adds an object to the container
    * @param {object|function} object
    * @param {string} name optional
+   * @return {Promise}
    */
   add(object, name) {
     name = name || object.constructor.name;
     this[injectables][name] = object;
+    return Promise.resolve(object);
   }
 
   /**
@@ -73,7 +91,7 @@ class InjectorContainer {
    * injects to an object, actually the code for function works just fine
    * @param something
    */
-  objectInjector(something) {        
+  objectInjector(something) {
     return this.functionInjector(something);
   }
 
