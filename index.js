@@ -39,8 +39,13 @@ class InjectorContainer {
    * @return {Promise}
    */
   requireAndAdd(filename, name, treater) {
-    treater === undefined && typeof name === 'function' && (treater = name) && (name = undefined);
-    !treater && (treater = obj => obj);
+    if (treater === undefined && typeof name === 'function') {
+      treater = name;
+      name = undefined;
+    }
+    if (!treater) {
+      treater = obj => obj;
+    }
     name    = name    || filename.split('/').pop().split('.').shift();
     let obj = require(filename);
     obj     = treater(obj);
