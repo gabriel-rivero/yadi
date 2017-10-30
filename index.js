@@ -39,8 +39,13 @@ class InjectorContainer {
    * @return {Promise}
    */
   requireAndAdd(filename, name, treater) {
-    treater === undefined && typeof name === 'function' && (treater = name) && (name = undefined);
-    !treater && (treater = obj => obj);
+    if (treater === undefined && typeof name === 'function') {
+      treater = name;
+      name = undefined;
+    }
+    if (!treater) {
+      treater = obj => obj;
+    }
     name    = name    || filename.split('/').pop().split('.').shift();
     let obj = require(filename);
     obj     = treater(obj);
@@ -65,8 +70,11 @@ class InjectorContainer {
    */
   inject(something) {
     let type = this.getType(something);
-    return this[type + 'Injector'] ? this[type + 'Injector'](something)
-                                   : throwError(`Injector type '${type}' not defined`);
+    if (this[type + 'Injector']) {
+      return this[type + 'Injector'](something);
+    } else {
+      return Promise.reject(`Injector type '${type}' not defined`);
+    }
   }
 
   /**
@@ -99,24 +107,9 @@ class InjectorContainer {
    * injects the dependencies into the files of a directory or a single file
    */
   stringInjector(something) {
-    return new Promise((resolve, reject) => {
-      this.doesPathExist(something)
-      .then(() => this.getPathInformation(something))
-      .then(stats => stats.isDirectory() ? resolve(this.directoryInjector(something))
-                                         : resolve(this.fileInjector(something)))
-      .catch(() => throwError(`Path '${something}' don't exists or had an access error`));
-    });
-  }
-
-  /**
-   * checks if the path exists
-   * @param  {string}
-   * @return {Promise} resolves when exists, rejects if not
-   */
-  doesPathExist(path) {
-    return new Promise((resolve, reject) =>
-      fs.exists(path, exists =>
-        exists ? resolve() : reject()));
+    return this.getPathInformation(something)
+    .then(stats => stats.isDirectory() ? this.directoryInjector(something) : this.fileInjector(something))
+    .catch(err => Promise.reject(`Path '${something}' does not exist or has an access error: ${err}`));
   }
 
   /**
@@ -125,20 +118,16 @@ class InjectorContainer {
    * @return {Promise} rejects on error
    */
   getPathInformation(path) {
-    return new Promise((resolve, reject) =>
-      fs.stat(path, (err, stats) =>
-        !err ? resolve(stats) : reject()));
+    return new Promise((resolve, reject) => fs.stat(path, (err, stats) => !err ? resolve(stats) : reject(err)));
   }
 
   /**
    * injects into all the files of a directory
    */
   directoryInjector(directoryPath) {
-    return new Promise((resolve, reject) => {
-      this.getFilesInDirectory(directoryPath)
-      .then(files => resolve(Promise.all(files.map(file => this.fileInjector(path.join(directoryPath, file))))))
-      .catch(() => throwError(`Error listing files on '${directoryPath}'`));
-    });
+    return this.getFilesInDirectory(directoryPath)
+    .then(files => Promise.all(files.map(file => this.fileInjector(path.join(directoryPath, file)))))
+    .catch(err => Promise.reject(`Error injecting into files on '${directoryPath}': ${err}`));
   }
 
   /**
@@ -147,16 +136,20 @@ class InjectorContainer {
    * @return {array}
    */
   getFilesInDirectory(path) {
-    return new Promise((resolve, reject) =>
-      fs.readdir(path, (err, files) =>
-        !err ? resolve(files) : reject()));
+    return new Promise((resolve, reject) => fs.readdir(path, (err, files) => err ? reject(err) : resolve(files)));
   }
 
   /**
    * injects into the file
    */
   fileInjector(filePath) {
-    let temp = require(filePath);
+    let temp;
+    try {
+      temp = require(filePath);
+    } catch (err) {
+      this.outputMessages && console.error('error loading file', err);
+      return Promise.reject(err);
+    }
     return this.inject(temp);
   }
 
@@ -166,13 +159,14 @@ class InjectorContainer {
    */
   functionInjector(something) {
     let dependencies = this.getDependencies(something);
-    return Promise.all(Object.keys(dependencies).map(name => {
-      (this[injectables][name]) ? something[dependencies[name]] = this[injectables][name]
-                                : this.outputMessages && console.warn(`Injectable '${name}' is not defined`);
-      // always resolve despite the possible warning
-      // TODO: test if we should reject on warning
-      Promise.resolve();
-    }));
+    Object.keys(dependencies).forEach(name => {
+      if (this[injectables][name]) {
+        something[dependencies[name]] = this[injectables][name];
+      } else {
+        this.outputMessages && console.warn(`Injectable '${name}' is not defined`);
+      }
+    });
+    return Promise.resolve(something);
   }
 
   /**
