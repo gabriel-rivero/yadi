@@ -99,12 +99,12 @@ class InjectorContainer {
    * injects the dependencies into the files of a directory or a single file
    */
   stringInjector(something) {
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       this.doesPathExist(something)
       .then(() => this.getPathInformation(something))
-      .then(stats => stats.isDirectory() ? resolve(this.directoryInjector(something))
-                                         : resolve(this.fileInjector(something)))
-      .catch(() => throwError(`Path '${something}' don't exists or had an access error`));
+      .then(stats => stats.isDirectory() ? this.directoryInjector(something)
+                                         : this.fileInjector(something))
+      .catch(() => throwError(`Path '${something}' does not exist or has an access error`));
     });
   }
 
@@ -136,7 +136,7 @@ class InjectorContainer {
   directoryInjector(directoryPath) {
     return new Promise((resolve, reject) => {
       this.getFilesInDirectory(directoryPath)
-      .then(files => resolve(Promise.all(files.map(file => this.fileInjector(path.join(directoryPath, file))))))
+      .then(files => Promise.all(files.map(file => this.fileInjector(path.join(directoryPath, file)))))
       .catch(() => throwError(`Error listing files on '${directoryPath}'`));
     });
   }
@@ -147,16 +147,20 @@ class InjectorContainer {
    * @return {array}
    */
   getFilesInDirectory(path) {
-    return new Promise((resolve, reject) =>
-      fs.readdir(path, (err, files) =>
-        !err ? resolve(files) : reject()));
+    return new Promise((resolve, reject) => fs.readdir(path, (err, files) => err ? reject(err) : resolve(files)));
   }
 
   /**
    * injects into the file
    */
   fileInjector(filePath) {
-    let temp = require(filePath);
+    let temp;
+    try {
+      temp = require(filePath);
+    } catch (err) {
+      this.outputMessages && console.error('error loading file', err);
+      return Promise.reject(err);
+    }
     return this.inject(temp);
   }
 
@@ -167,11 +171,13 @@ class InjectorContainer {
   functionInjector(something) {
     let dependencies = this.getDependencies(something);
     return Promise.all(Object.keys(dependencies).map(name => {
-      (this[injectables][name]) ? something[dependencies[name]] = this[injectables][name]
-                                : this.outputMessages && console.warn(`Injectable '${name}' is not defined`);
+      if (this[injectables][name]) {
+        something[dependencies[name]] = this[injectables][name];
+      } else {
+        this.outputMessages && console.warn(`Injectable '${name}' is not defined`);
+      }
       // always resolve despite the possible warning
-      // TODO: test if we should reject on warning
-      Promise.resolve();
+      return Promise.resolve();
     }));
   }
 
