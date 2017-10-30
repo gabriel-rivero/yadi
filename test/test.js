@@ -124,6 +124,7 @@ vows.describe('Injector tests: ').addBatch({
       assert.equal(subject.named(), 'the string passed was chimichangas');
     }
   },
+
   'file injection': {
     topic: () => {
       let injector = require(injectorPath);
@@ -141,6 +142,23 @@ vows.describe('Injector tests: ').addBatch({
       }
     }
   },
+
+  'negative file injection': {
+    topic: () => {
+      let injector = require(injectorPath);
+      injector.outputMessages = false;
+      return injector;
+    },
+    'inject into a non existing file': {
+      topic: function (injector) {
+        injector.inject(path.join(__dirname, 'patients', 'pepino.js'))
+                .catch(err => this.callback());
+      },
+      'file should have received the injection': () => {
+      }
+    }
+  },
+
   'directory injection': {
     topic: () => {
       let injector = require(injectorPath);
